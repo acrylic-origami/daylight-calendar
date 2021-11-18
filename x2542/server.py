@@ -109,7 +109,10 @@ def lu():
 				now = dateutil.parser.parse(body['dt'])
 			except ValueError:
 				return { 'err': 'Use ISO8601 date/time: yyyy-mm-dd[Thh:mm:ss[±hh[:mm]]]' }
-
+		
+		if now.tzinfo is None or now.tzinfo.utcoffset(now) is None:
+			now = now.astimezone(pytz.utc)
+			
 		if now < dt.datetime(1970, 1, 3, tzinfo=pytz.utc) or now > dt.datetime(2029, 12, 31, tzinfo=pytz.utc):
 			return { 'err': 'Date is out of range. Data exists for years 1970-2030.' }
 		
