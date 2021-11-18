@@ -104,11 +104,16 @@ a {
 			#input_container .err-msg {
 				color:#F33;
 			}
+			#input_container .freewheel-msg {
+				font-size:0.7em;
+				font-style:italic;
+				color:#777;
+			}
 				#input_container .input-wrapper.err .principal-input {
 					border-color:#F00 !important;
 				}
 			#input_container .place-time {
-				font-size:0.7em;
+				font-size:0.8em;
 			}
 				#input_container .place-time h3 {
 					margin:0.2em 0;
@@ -126,7 +131,9 @@ a {
 				#input_container .input-rewrapper > * {
 					margin:0.2em;
 				}
-				
+				#input_container .input-button {
+					cursor:pointer;
+				}
 				#input_container .input-button, #input_container .input-button:hover:disabled {
 					padding:1em;
 					border:none;
@@ -134,7 +141,6 @@ a {
 					background-color:#222;
 					border:#AAA solid 1px;
 					color:#AAA;
-					cursor:pointer;
 				}
 				#input_container .input-button:hover {
 					background-color:#333;
@@ -142,7 +148,7 @@ a {
 				}
 				#input_container .input-button:disabled, #input_container .input-button:hover:disabled {
 					opacity:0.4;
-					cursor:auto;
+					cursor:not-allowed;
 				}
 				
 				#input_container .freewheeling input.principal-input {

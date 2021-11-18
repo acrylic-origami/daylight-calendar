@@ -1,4 +1,4 @@
-import { OrderedMap, fromJS } from 'immutable'
+import { List } from 'immutable'
 import React from 'react'
 
 const FREEWHEEL_TICK = 60E3
@@ -8,12 +8,12 @@ const TITLES = {
 	sun_days: '"Days" since Unix Epoch',
 	sun_hours: 'Hours of sun since start of Day'
 }
-const empty = {
-	real_time: null,
-	sun_map: null,
-	sun_days: null,
-	sun_hours: null,
-}
+const empty = List([
+	['real_time', null],
+	['sun_days', null],
+	['sun_hours', null],
+	['sun_map', null],
+]);
 const identity = a => a
 const TOOLTIP_RENDER = {
 	real_time: hours2time, // :${parseInt(((d * 60) % 1) * 60)}
@@ -60,7 +60,7 @@ export default class extends React.Component {
 		this.state = {
 			time_tx: 0, time_rx: 0,
 			place_tx: 0, place_rx: 0,
-			j: OrderedMap(empty),
+			j: empty,
 			freewheeling: true,
 			input_time: (new Date(Date.now())).toISOString(),
 			input_place: '',
@@ -123,7 +123,7 @@ export default class extends React.Component {
 		return fetch('/lu', { method: 'POST', body: F }).then(r => r.json())
 			.then(j => j.err ? this.setState({ lu_err: j.err }) : this.setState(s => ({
 				time_rx: s.time_rx + 1,
-				j: OrderedMap(j)
+				j: List(j)
 			})));
 	}
 	handle_place_submit = e => {
@@ -164,9 +164,10 @@ export default class extends React.Component {
 					<label htmlFor="input_time">Time</label>
 					<div className="input-rewrapper">
 						<input type="text" id="input_time" className="principal-input" placeholder="ISO-formatted time (yyyy-mm-ddThh:mm:ss)" onFocus={this.handle_input_time_focus} value={this.state.input_time} onChange={this.handle_input_time} />
-						<input type="button" className="input-button" onClick={this.handle_time_reset} value="Current time" disabled={this.state.freewheeling} />
+						<input type="button" className="input-button" onClick={this.handle_time_reset} value="Clock mode" disabled={this.state.freewheeling} />
 						<input type="submit" className="invisible" />
 					</div>
+					{ this.state.freewheeling && <div className="freewheel-msg">Clock mode on, updating every minute. Enter a time to disable.</div> }
 					{ this.state.lu_err && <div className="err-msg">{this.state.lu_err}</div> }
 				</form>
 			</div>
@@ -181,7 +182,7 @@ export default class extends React.Component {
 					{ this.state.pl_err && <div className="err-msg">{this.state.pl_err}</div> }
 					{ this.state.place && (() => {
 							const xy = latlon2xy(this.state.place.lat, this.state.place.lon);
-							const [d, t] = ['sun_days', 'real_time'].map(a => tooltip(xy, this.state.j.get(a)[0])[1]);
+							const [d, t] = ['sun_days', 'real_time'].map(a => tooltip(xy, this.state.j.filter(([k, _]) => k === a).get(0)[1][0])[1]);
 							return <div className="place-time">
 								<h3>Date & Time in {this.state.place.name}, {this.state.place.pcode}:</h3>
 								<div>{(new Date(d * 86400 * 1E3)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {hours2time(t)}</div>
@@ -193,7 +194,7 @@ export default class extends React.Component {
 		</section>
 		<section id="maps_container">
 			{
-				this.state.j.map((l, k) => {
+				this.state.j.map(([k, l]) => {
 					const loaded = this.state.time_rx > 0;
 					const [dat, [im_dat, im_cbar]] = l || [null, [null, null]]; // eck. but it's good UX to see the maps load first so show it's working.
 					
@@ -215,7 +216,7 @@ export default class extends React.Component {
 							}}></div>
 						</div>
 					</figure>;
-				}).toList().groupBy((_v, k) => parseInt(k / 2)).map((v, k) =>
+				}).groupBy((_v, k) => parseInt(k / 2)).map(v =>
 					<div className="fig-row">{v}</div>
 				).toList().toArray()
 			}

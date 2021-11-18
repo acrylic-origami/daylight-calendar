@@ -129,22 +129,22 @@ def lu():
 		D = np.array([
 		    [[
 		        (now_lon - np.datetime64(c['last_tick'])), # real time
-		        ((now_lon > np.datetime64(c['rise'])) & (now_lon < np.datetime64(c['falls'].upper))), # sunrise/sunset map
 		        *np.divmod(np.timedelta64(c['sun_time']), day_len), # sun time
+		        ((now_lon > np.datetime64(c['rise'])) & (now_lon < np.datetime64(c['falls'].upper))), # sunrise/sunset map
 		    ] for c in chunk(cur, now_lon.item())]
 		for now_lon in now_lons], dtype=np.object)
 		
-		fields = ['real_time', 'sun_map', 'sun_days', 'sun_hours']
-		tys = [np.timedelta64, np.float, np.float, np.timedelta64]
-		rescales = [1/3600E6, 1, 1, 1/3600E6]
+		fields = ['real_time', 'sun_days', 'sun_hours', 'sun_map']
+		tys = [np.timedelta64, np.float, np.timedelta64, np.float]
+		rescales = [1/3600E6, 1, 1/3600E6, 1]
 		norms = [LogNorm(), None, None, None]
 		X, Y = np.meshgrid(lons, lats)
 		
 		Ds = [D[:,:,i].astype(ty).astype(np.float) * rescale for i, (rescale, ty) in enumerate(zip(rescales, tys))]
 		
-		return {
-			field: (
+		return json.dumps([
+			(field, (
 				D_.tolist(),
 				pcolor2b64(X, Y, D_.T, size=((lons[-1]-lons[0])/128, (lats[-1]-lats[0])/128), dpi=128, norm=norm, shading='nearest'),
-			) for field, norm, D_ in zip(fields, norms, Ds)
-		}
+			)) for field, norm, D_ in zip(fields, norms, Ds)
+		])
