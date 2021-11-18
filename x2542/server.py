@@ -80,7 +80,7 @@ def parse_place():
 		try:
 			place_raw = request.form['q']
 		except KeyError:
-			return 'null'
+			return { 'err': 'Query is missing.' }
 		
 		place = [p.strip() for p in re.split(r'\s*,\s*', place_raw)]
 		cur.execute('''
@@ -95,7 +95,7 @@ def parse_place():
 		try:
 			return cs_countries[0] if len(cs_countries) > 0 else cs[0]
 		except Exception:
-			return 'null'
+			return { 'err': '"%s" was not found.' % place_raw }
 
 @app.route('/lu', methods=['POST', 'GET'])
 def lu():
@@ -108,8 +108,11 @@ def lu():
 			try:
 				now = dateutil.parser.parse(body['dt'])
 			except ValueError:
-				pass
+				return { 'err': 'Use ISO8601 date/time: yyyy-mm-dd[Thh:mm:ss[±hh[:mm]]]' }
 
+		if now < dt.datetime(1970, 1, 3, tzinfo=pytz.utc) or now > dt.datetime(2029, 12, 31, tzinfo=pytz.utc):
+			return { 'err': 'Date is out of range. Data exists for years 1970-2030.' }
+		
 		unix_real_hours = []
 		unix_sun_days = []
 		unix_sun_hours = []

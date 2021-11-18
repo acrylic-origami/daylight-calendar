@@ -101,6 +101,12 @@ a {
 			flex-grow:1;
 			margin:0 0.4em;
 		}
+			#input_container .err-msg {
+				color:#F33;
+			}
+				#input_container .input-wrapper.err .principal-input {
+					border-color:#F00 !important;
+				}
 			#input_container .place-time {
 				font-size:0.7em;
 			}

@@ -65,6 +65,8 @@ export default class extends React.Component {
 			input_time: (new Date(Date.now())).toISOString(),
 			input_place: '',
 			place: null,
+			pl_err: null,
+			lu_err: null,
 			mouse_xy: null
 		};
 	}
@@ -78,10 +80,14 @@ export default class extends React.Component {
 		}, FREEWHEEL_TICK);
 	}
 	
-	// componentDidUpdate(prev_props, prev_state) {
-	// 	if(prev_state.mouse_xy !== this.state.mouse_xy) {
-	// 	}
-	// }
+	componentDidUpdate(prev_props, prev_state) {
+		if(prev_state.lu_err !== this.state.lu_err && this.state.lu_err !== null) {
+			setTimeout(_ => this.setState({ lu_err: null }), 7000);
+		}
+		if(prev_state.pl_err !== this.state.pl_err && this.state.pl_err !== null) {
+			setTimeout(_ => this.setState({ pl_err: null }), 7000);
+		}
+	}
 	
 	tick_now = () => this.setState({
 		input_time: (new Date(Date.now())).toISOString()
@@ -115,7 +121,7 @@ export default class extends React.Component {
 		const F = new FormData();
 		F.set('dt', this.state.input_time); // , mode: 'cors'
 		return fetch('/lu', { method: 'POST', body: F }).then(r => r.json())
-			.then(j => this.setState(s => ({
+			.then(j => j.err ? this.setState({ lu_err: j.err }) : this.setState(s => ({
 				time_rx: s.time_rx + 1,
 				j: OrderedMap(j)
 			})));
@@ -129,7 +135,7 @@ export default class extends React.Component {
 		const F = new FormData();
 		F.set('q', this.state.input_place); // , mode: 'cors'
 		return fetch('/pl', { method: 'POST', body: F }).then(r => r.json())
-			.then(j => this.setState(s => ({
+			.then(j => j.err ? this.setState({ pl_err: j.err }) : this.setState(s => ({
 				place_rx: s.place_rx + 1,
 				place: j
 			})));
@@ -153,7 +159,7 @@ export default class extends React.Component {
 			</ul>
 		</nav>
 		<section id="input_container">
-			<div className={`input-wrapper ${this.state.freewheeling ? 'freewheeling' : ''}`}>
+			<div className={`input-wrapper ${this.state.lu_err !== null ? 'err' : '' } ${this.state.freewheeling ? 'freewheeling' : ''}`}>
 				<form action="/place" onSubmit={this.handle_time_submit}>
 					<label htmlFor="input_time">Time</label>
 					<div className="input-rewrapper">
@@ -161,9 +167,10 @@ export default class extends React.Component {
 						<input type="button" className="input-button" onClick={this.handle_time_reset} value="Current time" disabled={this.state.freewheeling} />
 						<input type="submit" className="invisible" />
 					</div>
+					{ this.state.lu_err && <div className="err-msg">{this.state.lu_err}</div> }
 				</form>
 			</div>
-			<div className="input-wrapper">
+			<div className={`input-wrapper ${this.state.pl_err !== null ? 'err' : '' }`}>
 				<form action="/place" onSubmit={this.handle_place_submit}>
 					<label htmlFor="input_place">Place</label>
 					<div className="input-rewrapper">
@@ -171,6 +178,7 @@ export default class extends React.Component {
 						<input type="button" className="input-button" onClick={this.handle_place_reset} value="Clear" />
 						<input type="submit" className="invisible" />
 					</div>
+					{ this.state.pl_err && <div className="err-msg">{this.state.pl_err}</div> }
 					{ this.state.place && (() => {
 							const xy = latlon2xy(this.state.place.lat, this.state.place.lon);
 							const [d, t] = ['sun_days', 'real_time'].map(a => tooltip(xy, this.state.j.get(a)[0])[1]);
