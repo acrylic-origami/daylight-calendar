@@ -124,7 +124,7 @@ export default class extends React.Component {
 			.then(j => j.err ? this.setState({ lu_err: j.err }) : this.setState(s => ({
 				time_rx: s.time_rx + 1,
 				j: List(j)
-			})));
+			}))).catch(e => this.setState({ lu_err: e.toString() }));
 	}
 	handle_place_submit = e => {
 		if(e !== undefined) {
@@ -138,7 +138,7 @@ export default class extends React.Component {
 			.then(j => j.err ? this.setState({ pl_err: j.err }) : this.setState(s => ({
 				place_rx: s.place_rx + 1,
 				place: j
-			})));
+			}))).catch(e => this.setState({ pl_err: e.toString() }));
 	}
 		
 	handle_input_time_focus = e => this.setState({
@@ -155,7 +155,7 @@ export default class extends React.Component {
 			<a href="https://lam.io" target="_blank"><div className="logo"></div></a>
 			<ul className="flat-list">
 				<li><a href="https://xkcd.com/2542/" target="_blank">XKCD 2542</a></li>
-				<li><a href="https://lam.io/projects/x2542" target="_blank">How this works</a></li>
+				<li><a href="https://github.com/acrylic-origami/daylight-calendar#readme" target="_blank">Github: code &amp; details</a></li>
 			</ul>
 		</nav>
 		<section id="input_container">
@@ -211,9 +211,9 @@ export default class extends React.Component {
 									{ loaded && this.state.mouse_xy && tooltip(this.state.mouse_xy, dat, TOOLTIP_RENDER[k])[0] }
 								</div>
 							</div>
-							<div className="cbar" style={{
+							{/* <div className="cbar" style={{
 								backgroundImage: loaded && `url(data:image/png;base64,${im_cbar})`
-							}}></div>
+							}}></div> */}
 						</div>
 					</figure>;
 				}).groupBy((_v, k) => parseInt(k / 2)).map(v =>
