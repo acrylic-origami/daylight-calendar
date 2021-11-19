@@ -15,6 +15,8 @@ import re
 import json
 import base64
 import pytz
+import matplotlib.pyplot as plt
+from PIL import Image
 
 from .creds import creds
 
@@ -33,24 +35,35 @@ mpl.rcParams.update({
 	"ytick.color": "white",
 	"grid.color": "lightgray"
 })
+
+cmap = plt.get_cmap('viridis')
 	
-def pcolor2b64(x, y, d, size=(1, 1), dpi=80, **kwargs):
+def pcolor2b64(d, size=(1, 1), dpi=80, **kwargs):
 	# thanks to https://stackoverflow.com/a/9295367/3925507
-	fig = Figure()
-	fig.set_size_inches(size)
-	ax = fig.add_axes([0., 0., 1., 1.])
-	ax.set_axis_off()
-	c = ax.pcolor(x, y, d, **kwargs)
+	# fig = Figure()
+	# fig.set_size_inches(size)
+	# ax = fig.add_axes([0., 0., 1., 1.])
+	# ax.set_axis_off()
+	# c = ax.imshow(d, **kwargs)
+	
+	I = Image.fromarray((cmap(norm(d[::-1])) * 255).astype(np.uint8), 'RGBA')
+	
+	# for x in range(d.shape[1]):
+	# 	for y in range(d.shape[0]):
+	# 		Aout_pxs[y, x] = tuple([int(c * 256) for c in cmap(d_[y, x])])
+			
 	
 	im_bytes = io.BytesIO()
-	fig.savefig(im_bytes, dpi=dpi, format='png', transparent=True)
+	# fig.savefig(im_bytes, dpi=dpi, format='png', transparent=True)
+	I.save(im_bytes, 'PNG')
+	I.close()
 	im_bytes.seek(0)
 	
 	cbar_bytes = io.BytesIO()
-	cbar_fig = Figure(figsize=(0.4,4))
-	ax = cbar_fig.add_axes([0, 0, 1, 1])
-	cbar_fig.colorbar(c, cax=ax)
-	cbar_fig.savefig(cbar_bytes, dpi=128, format='png', bbox_inches='tight', transparent=True)
+	# cbar_fig = Figure(figsize=(0.4,4))
+	# ax = cbar_fig.add_axes([0, 0, 1, 1])
+	# cbar_fig.colorbar(c, cax=ax)
+	# cbar_fig.savefig(cbar_bytes, dpi=128, format='png', bbox_inches='tight', transparent=True)
 	cbar_bytes.seek(0)
 	
 	return [str(base64.b64encode(b.read()), 'utf-8') for b in [im_bytes, cbar_bytes]]
@@ -140,7 +153,8 @@ def lu():
 		fields = ['real_time', 'sun_days', 'sun_hours', 'sun_map']
 		tys = [np.timedelta64, np.float, np.timedelta64, np.float]
 		rescales = [1/3600E6, 1, 1/3600E6, 1]
-		norms = [LogNorm(), None, None, None]
+		ident = lambda a: a
+		norms = [lambda x: np.log(np.maximum(1E-4, x)), ident, ident, ident]
 		X, Y = np.meshgrid(lons, lats)
 		
 		Ds = [D[:,:,i].astype(ty).astype(np.float) * rescale for i, (rescale, ty) in enumerate(zip(rescales, tys))]
@@ -148,6 +162,7 @@ def lu():
 		return json.dumps([
 			(field, (
 				D_.tolist(),
-				pcolor2b64(X, Y, D_.T, size=((lons[-1]-lons[0])/128, (lats[-1]-lats[0])/128), dpi=128, norm=norm, shading='nearest'),
-			)) for field, norm, D_ in zip(fields, norms, Ds)
+				pcolor2b64(norm_(D_.T), size=((lons[-1]-lons[0])/128, (lats[-1]-lats[0])/128)),
+				[np.min(D_), np.max(D_)]
+			)) for field, norm_, D_ in zip(fields, norms, Ds)
 		])

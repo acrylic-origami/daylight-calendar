@@ -196,7 +196,7 @@ export default class extends React.Component {
 			{
 				this.state.j.map(([k, l]) => {
 					const loaded = this.state.time_rx > 0;
-					const [dat, [im_dat, im_cbar]] = l || [null, [null, null]]; // eck. but it's good UX to see the maps load first so show it's working.
+					const [dat, [im_dat, im_cbar], rng] = l || [null, [null, null], null]; // eck. but it's good UX to see the maps load first so show it's working.
 					
 					return <figure className="map-fig">
 						<h2>{TITLES[k]}</h2>
@@ -211,9 +211,13 @@ export default class extends React.Component {
 									{ loaded && this.state.mouse_xy && tooltip(this.state.mouse_xy, dat, TOOLTIP_RENDER[k])[0] }
 								</div>
 							</div>
-							{/* <div className="cbar" style={{
+							<div className="cbar-wrapper"> {/*  style={{
 								backgroundImage: loaded && `url(data:image/png;base64,${im_cbar})`
-							}}></div> */}
+							}} */}
+								<div className="lim">{loaded && TOOLTIP_RENDER[k](rng[1])}</div>
+								<div className="cbar"></div>
+								<div className="lim">{loaded && TOOLTIP_RENDER[k](rng[0])}</div>
+							</div>
 						</div>
 					</figure>;
 				}).groupBy((_v, k) => parseInt(k / 2)).map(v =>

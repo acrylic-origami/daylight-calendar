@@ -43,12 +43,31 @@ a {
 .equimapper {
 	width:100%;
 	height:100%;
-}
-.equimapper, .cbar {
-	background-size:contain;
+	background-size:100% 100%;
 	background-repeat:no-repeat;
 	background-position:center;
 }
+	.cbar-wrapper {
+		display:flex;
+		flex-direction:column;
+		align-items:center;
+		width:8%;
+		min-width:70px;
+		font-size:0.7em;
+	}
+		.cbar-wrapper > .lim {
+			margin:0.7em 0;
+		}
+		.cbar {
+			background-image:url(../img/viridis-cbar.png);
+			background-repeat:no-repeat;
+			width:100%;
+			background-position:center;
+			background-size:contain;
+			image-rendering:pixelated;
+			flex-grow:1;
+		}
+		
 
 .logo {
 	background-image:url(../img/isometric_white_bordered.png);
@@ -178,6 +197,7 @@ a {
 			flex-direction:row;
 		}
 			figure.map-fig {
+				box-sizing:border-box;
 				display:flex;
 				flex-direction:column;
 				flex-grow:1;
@@ -213,10 +233,6 @@ a {
 						.map-wrapper .map-overlay {
 							image-rendering:pixelated;
 							opacity:0.35;
-						}
-						.fig-wrapper .cbar {
-							width:8%;
-							min-width:70px;
 						}
 
 
