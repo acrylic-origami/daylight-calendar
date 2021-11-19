@@ -57,13 +57,14 @@ export default class extends React.Component {
 	constructor(props) {
 		super(props);
 		
+		const U = new URLSearchParams(window.location.search);
 		this.state = {
 			time_tx: 0, time_rx: 0,
 			place_tx: 0, place_rx: 0,
 			j: empty,
-			freewheeling: true,
-			input_time: (new Date(Date.now())).toISOString(),
-			input_place: '',
+			freewheeling: !(U.get('input_time')),
+			input_time: U.get('input_time') || (new Date(Date.now())).toISOString(),
+			input_place: U.get('input_place'),
 			place: null,
 			pl_err: null,
 			lu_err: null,
@@ -71,7 +72,12 @@ export default class extends React.Component {
 		};
 	}
 	componentDidMount() {
-		this.handle_time_submit();
+		this.handle_time_submit(undefined, false);
+		
+		const U = new URLSearchParams(window.location.search);
+		if(U.get('p') !== null && U.get('p') !== '') {
+			this.handle_place_submit(undefined, false);
+		}
 			
 		setInterval(() => {
 			if(this.state.freewheeling) {
@@ -91,7 +97,7 @@ export default class extends React.Component {
 	
 	tick_now = () => this.setState({
 		input_time: (new Date(Date.now())).toISOString()
-	}, this.handle_time_submit);
+	}, _ => this.handle_time_submit(undefined, false));
 	
 	handle_mousemove = e => {
 		const bb = e.target.getBoundingClientRect();
@@ -105,17 +111,37 @@ export default class extends React.Component {
 	
 	handle_mouseleave = e => this.setState({ mouse_xy: null })
 	
-	handle_place_reset = e => this.setState({ input_place: '', place: null })
+	handle_place_reset = e => this.setState({ input_place: '', place: null }, _ => this.history_push('input_place'))
 	
 	handle_time_reset = e => this.setState({
 		input_time: '',
 		freewheeling: true
-	}, this.tick_now)
+	}, _ => {
+		this.history_push('input_time');
+		this.tick_now();
+	})
 	
-	handle_time_submit = e => {
+	history_push(k, name='history_push') {
+		const U = new URLSearchParams(window.location.search);
+		if(!this.state[k]) {
+			if(U.has(k)) {
+				U.delete(k);
+			}
+		}
+		else {
+			U.set(k, this.state[k]);
+		}
+		history.pushState({}, name, `?${U.toString()}`);
+	}
+	
+	handle_time_submit = (e, push=true) => {
 		if(e !== undefined) {
 			e.stopPropagation();
 			e.preventDefault();
+		}
+		
+		if(push) {
+			this.history_push('input_time','time_search');
 		}
 		
 		const F = new FormData();
@@ -126,10 +152,14 @@ export default class extends React.Component {
 				j: List(j)
 			}))).catch(e => this.setState({ lu_err: e.toString() }));
 	}
-	handle_place_submit = e => {
+	handle_place_submit = (e, push=true) => {
 		if(e !== undefined) {
 			e.stopPropagation();
 			e.preventDefault();
+		}
+		
+		if(push) {
+			this.history_push('input_place', 'place_search');
 		}
 		
 		const F = new FormData();
