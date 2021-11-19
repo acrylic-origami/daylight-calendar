@@ -97,16 +97,20 @@ def parse_place():
 		
 		place = [p.strip() for p in re.split(r'\s*,\s*', place_raw)]
 		cur.execute('''
-			SELECT p.lat, p.lon, p.name, p.country_code AS pcode, c.code AS ccode FROM places p
+			SELECT p.lat, p.lon, p.name, p.admin1, p.country_code AS pcode, c.code AS ccode FROM places p
 				INNER JOIN names n ON p.geonameid = n.geonameid
-				LEFT JOIN countries c ON c.code = p.country_code
-				WHERE n.upper_name=%s AND ((UPPER(c.name)=%s) OR %s)
-				ORDER BY name_rank DESC
-		''', (place[0].upper(), place[-1].upper(), len(place) <= 1))
+				LEFT JOIN countries c ON c.code = p.country_code AND ((UPPER(c.name)=%s) OR %s)
+				WHERE n.upper_name=%s
+				ORDER BY p.pop DESC
+		''', (place[-1].upper(), len(place) <= 1, place[0].upper()))
 		cs = cur.fetchall()
 		cs_countries = [c for c in cs if c['ccode'] != None]
+		cs_admin1 = [c for c in cs if c['admin1'] == place[-1]]
 		try:
-			return cs_countries[0] if len(cs_countries) > 0 else cs[0]
+			if len(place) > 1:
+				return cs_countries[0] if len(cs_countries) > 0 else cs_admin1[0]
+			else:
+				return cs[0]
 		except Exception:
 			return { 'err': '"%s" was not found.' % place_raw }
 
