@@ -1,5 +1,6 @@
 import { List } from 'immutable'
 import React from 'react'
+import HTTP_CODES from './codes'
 
 const FREEWHEEL_TICK = 60E3
 const TITLES = {
@@ -146,7 +147,12 @@ export default class extends React.Component {
 		
 		const F = new FormData();
 		F.set('dt', this.state.input_time); // , mode: 'cors'
-		return fetch('/lu', { method: 'POST', body: F }).then(r => r.json())
+		return fetch('/lu', { method: 'POST', body: F }).then(r => {
+				if(r.status >= 400)
+					throw new Error(`Server error code ${r.status}: ${HTTP_CODES[r.status]}`)
+				
+				return r.json()
+			})
 			.then(j => j.err ? this.setState({ lu_err: j.err }) : this.setState(s => ({
 				time_rx: s.time_rx + 1,
 				j: List(j)
@@ -164,7 +170,12 @@ export default class extends React.Component {
 		
 		const F = new FormData();
 		F.set('q', this.state.input_place); // , mode: 'cors'
-		return fetch('/pl', { method: 'POST', body: F }).then(r => r.json())
+		return fetch('/pl', { method: 'POST', body: F }).then(r => {
+				if(r.status >= 400)
+					throw new Error(`Server error code ${r.status}: ${HTTP_CODES[r.status]}`)
+				
+				return r.json()
+			})
 			.then(j => j.err ? this.setState({ pl_err: j.err }) : this.setState(s => ({
 				place_rx: s.place_rx + 1,
 				place: j
