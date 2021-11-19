@@ -25,6 +25,7 @@ To install:
 1. Push the schemas into postgres: `psql x2542 < schemas.sql`;
 1. Generate table of sunrise/sunset times across latitudes in `proc/generate.py`;
 1. Postprocess and generate final lookup tables in Postgres: `psql x2542 < postprocess.sql`
+1. Build the `places` table according to [acrylic-origami/reaction-maps](https://github.com/acrylic-origami/reaction-maps/)
 1. Create credentials file for server: `echo 'creds = "user=<pg user> password=<pg pass>"' > x2542/creds.py`
 1. Start up flask dev server: `FLASK_APP=x2542/server.py FLASK_ENV=development flask run`
 1. Hit at `localhost:5000/static/index.html`
