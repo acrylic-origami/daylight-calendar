@@ -208,8 +208,8 @@ export default class extends React.Component {
 						<input type="button" className="input-button" onClick={this.handle_time_reset} value="Clock mode" disabled={this.state.freewheeling} />
 						<input type="submit" className="invisible" />
 					</div>
-					{ this.state.freewheeling && <div className="freewheel-msg">Clock mode on, updating every minute. Enter a time to disable.</div> }
 					{ this.state.lu_err && <div className="err-msg">{this.state.lu_err}</div> }
+					{ this.state.freewheeling && <div className="freewheel-msg">Clock mode on, updating every minute. Enter a time to disable.</div> }
 				</form>
 			</div>
 			<div className={`input-wrapper ${this.state.pl_err !== null ? 'err' : '' }`}>
@@ -221,7 +221,7 @@ export default class extends React.Component {
 						<input type="submit" className="invisible" />
 					</div>
 					{ this.state.pl_err && <div className="err-msg">{this.state.pl_err}</div> }
-					{ this.state.place && (() => {
+					{ (this.state.time_rx > 0) && this.state.place && (() => {
 							const xy = latlon2xy(this.state.place.lat, this.state.place.lon);
 							const [d, t] = ['sun_days', 'real_time'].map(a => tooltip(xy, this.state.j.filter(([k, _]) => k === a).get(0)[1][0])[1]);
 							return <div className="place-time">
